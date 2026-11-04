@@ -68,6 +68,22 @@
         order by s.create_time desc
     </select>
 
+    <select id="getByIdWithDish" parameterType="long" resultMap="setmealAndDishMap">
+        select a.*,
+               b.id    sd_id,
+               b.setmeal_id,
+               b.dish_id,
+               b.name  sd_name,
+               b.price sd_price,
+               b.copies
+        from setmeal a
+                 left join
+             setmeal_dish b
+             on
+                 a.id = b.setmeal_id
+        where a.id = #{id}
+    </select>
+
     <select id="list" parameterType="Setmeal" resultType="Setmeal">
         select * from setmeal
         <where>
@@ -82,7 +98,6 @@
             </if>
         </where>
     </select>
-
 
     <insert id="insert" parameterType="Setmeal" useGeneratedKeys="true" keyProperty="id">
         insert into setmeal
