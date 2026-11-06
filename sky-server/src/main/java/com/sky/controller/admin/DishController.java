@@ -21,7 +21,7 @@ import java.util.Set;
 /**
  * @author Crayon
  * @ClassName DishController
- * @description
+ * @description up-to-date
  * @date 2026/10/20 23:57
  */
 
@@ -47,9 +47,18 @@ public class DishController {
     public Result save(@RequestBody DishDTO dishDTO){
         log.info("新增菜品：{}",dishDTO);
         dishService.saveWithFlavor(dishDTO);
+
+        //清理缓存数据
+        String key = "dish_" + dishDTO.getCategoryId();
+        redisTemplate.delete(key);
         return Result.success();
     }
 
+    /**
+     * 菜品分页查询
+     * @param dishPageQueryDTO
+     * @return
+     */
     @GetMapping("/page")
     @ApiOperation("菜品分页查询")
     public Result<PageResult> pageResult(DishPageQueryDTO dishPageQueryDTO){
@@ -58,14 +67,27 @@ public class DishController {
         return Result.success(pageResult);
     }
 
+    /**
+     * 菜品批量删除
+     * @param ids
+     * @return
+     */
     @DeleteMapping
-    @ApiOperation("菜品删除")
+    @ApiOperation("菜品批量删除")
     public Result delete(@RequestParam List<Long> ids){
         log.info("菜品批量删除：{}",ids);
         dishService.deleteBatch(ids);
+
+        //将所有的菜品缓存数据清理掉，所有以dish_开头的key
+        cleanCache("dish_*");
         return Result.success();
     }
 
+    /**
+     * 根据id查询菜品
+     * @param id
+     * @return
+     */
     @GetMapping("/{id}")
     @ApiOperation("根据id查询菜品")
     public Result<DishVO> getById(@PathVariable Long id){
@@ -74,11 +96,19 @@ public class DishController {
         return Result.success(dishVO);
     }
 
+    /**
+     * 修改菜品
+     * @param dishDTO
+     * @return
+     */
     @PutMapping
     @ApiOperation("修改菜品")
     public Result update(@RequestBody DishDTO dishDTO){
         log.info("修改菜品：{}",dishDTO);
         dishService.updateWithFlavor(dishDTO);
+
+        //将所有的菜品缓存数据清理掉，所有以dish_开头的key
+        cleanCache("dish_*");
         return Result.success();
     }
 
